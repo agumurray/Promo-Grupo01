@@ -1,0 +1,313 @@
+programa grupo01
+procesos
+  proceso juntarPapeles(ES cantPapeles:numero)
+  comenzar
+    mientras HayPapelEnLaEsquina
+      cantPapeles:=cantPapeles+1
+      tomarPapel
+  fin
+
+  proceso juntarFlores(ES cantFlores:numero)
+  comenzar
+    mientras HayFlorEnLaEsquina
+      cantFlores:=cantFlores+1
+      tomarFlor
+  fin
+  proceso hacerEscalon(E ancho:numero; ES cantFlores:numero; E avInicial:numero)
+  variables
+    av:numero
+    ca:numero
+  comenzar
+    repetir 3
+      av:=PosAv
+      ca:=PosCa
+      juntarFlores(cantFlores)
+      BloquearEsquina(av,ca + 1)
+      mover
+      LiberarEsquina(av, ca)
+    derecha
+    repetir ancho
+      av:=PosAv
+      ca:=PosCa
+      juntarFlores(cantFlores)
+      BloquearEsquina(av + 1 ,ca)
+      mover
+      LiberarEsquina(av, ca)
+    repetir 3
+      derecha
+
+  fin
+  proceso maximo(ES max:numero; ES robMax: numero; E id:numero; E cant:numero)
+  comenzar
+    si cant > max
+      max:=cant
+      robMax:=id
+  fin
+
+  proceso recorrerCalleEscaladores
+  variables
+    av:numero
+    ca:numero
+  comenzar
+    si HayFlorEnLaBolsa
+      depositarFlor
+    derecha
+    av:=PosAv
+    ca:=PosCa
+    mientras (HayFlorEnLaBolsa) & (PosAv<100)
+      BloquearEsquina(av + 1,ca)
+      mover
+      av:=PosAv
+      LiberarEsquina(av - 1,ca)
+      depositarFlor
+  fin
+  proceso recorrerCalleCorredores
+  variables
+    av:numero
+    ca:numero
+  comenzar
+    si HayPapelEnLaBolsa
+      depositarPapel
+    derecha
+    av:=PosAv
+    ca:=PosCa
+    mientras (HayPapelEnLaBolsa) & (PosAv < 100)
+      BloquearEsquina(av + 1,ca)
+      mover
+      av:=PosAv
+      LiberarEsquina(av - 1,ca)
+      depositarPapel
+  fin
+areas
+  AreaCorredor1:AreaP(5,1,5,50)
+  AreaCorredor2:AreaP(10,1,10,50)
+  AreaCorredor3:AreaP(15,1,15,50)
+  AreaCorredor4:AreaP(20,1,20,50)
+  AreaEscaladores:AreaC(5,51,46,66)
+  AreaCalle50:AreaC(1,50,100,50)
+  EsquinaJuez:AreaP(1,1,1,1)
+  EsquinaGanador:AreaPC(100,1,100,1)
+robots
+  robot corredor
+  variables
+    cantPasos:numero
+    quienSoy:numero
+    cantPapeles:numero
+    av:numero
+    ca:numero
+    ganador:numero
+    avLlegada:numero
+  comenzar
+    av:=PosAv   
+    ca:=PosCa
+    RecibirMensaje(quienSoy,Juez)
+    
+    cantPapeles:=0
+    
+    mientras (PosCa<50)
+      Random(cantPasos,1,5)
+      si ~(PosCa + cantPasos > 50)
+        juntarPapeles(cantPapeles)
+        Pos(PosAv,PosCa+cantPasos)
+    
+    Pos(PosAv,1)
+    
+    si quienSoy = 1
+      EnviarMensaje(V,Escalador1)
+    sino
+      si quienSoy = 2
+        EnviarMensaje(V,Escalador2)
+      sino
+        si quienSoy = 3
+          EnviarMensaje(V,Escalador3)
+        sino
+          EnviarMensaje(V,Escalador4)
+    
+    EnviarMensaje(quienSoy,Juez)
+    EnviarMensaje(cantPapeles,Juez)
+    
+    RecibirMensaje(ganador,Juez)
+    
+    si ganador = quienSoy
+      BloquearEsquina(100,1)
+      Pos(100,1)
+      repetir cantPapeles
+        depositarPapel
+      Pos(av,ca)
+      LiberarEsquina(100,1)
+    sino
+      BloquearEsquina(1,50)
+      Pos(1,50)
+      recorrerCalleCorredores
+      avLlegada:=PosAv
+      Informar(PosAv,PosCa)
+      Pos(av,ca)
+      LiberarEsquina(avLlegada,50)
+  fin
+
+  robot escalador
+  variables
+    quienSoy:numero
+    cantFlores:numero
+    av:numero
+    ca:numero
+    bool: boolean
+    ancho:numero
+    ganador:numero
+    avLlegada:numero
+  comenzar
+    av:=PosAv
+    ca:=PosCa
+
+    cantFlores:=0
+    RecibirMensaje(quienSoy,Juez)
+    RecibirMensaje(bool,*)
+    
+    repetir 5
+      Random(ancho,3,5)
+      hacerEscalon(ancho, cantFlores,av)
+      LiberarEsquina(PosAv, PosCa)
+    Pos(av,51)
+    EnviarMensaje(quienSoy,Juez)
+    EnviarMensaje(cantFlores,Juez)
+
+    RecibirMensaje(ganador,Juez)
+    
+    si ganador = quienSoy
+      BloquearEsquina(100,1)
+      Pos(100,1)
+      repetir cantFlores
+        depositarFlor
+      Pos(av,ca)
+      LiberarEsquina(100,1)
+    sino
+      BloquearEsquina(1,50)
+      Pos(1,50)
+      recorrerCalleEscaladores
+      avLlegada:=PosAv
+      Informar(PosAv,PosCa)
+      Pos(av,ca)
+      LiberarEsquina(avLlegada,50)
+  fin
+
+  robot juez
+  variables
+    robId:numero
+    max_papeles:numero
+    max_flores:numero
+    corredor_max:numero
+    escalador_max:numero
+    cant:numero
+  comenzar
+    max_papeles:=0
+    max_flores:=0
+    EnviarMensaje(1,Corredor1)
+    EnviarMensaje(2,Corredor2)
+    EnviarMensaje(3,Corredor3)
+    EnviarMensaje(4,Corredor4)
+    
+    EnviarMensaje(5,Escalador1)
+    EnviarMensaje(6,Escalador2)
+    EnviarMensaje(7,Escalador3)
+    EnviarMensaje(8,Escalador4)
+    
+    repetir 8
+      RecibirMensaje(robId,*)
+      si robId = 1
+        RecibirMensaje(cant,Corredor1)
+        maximo(max_papeles,corredor_max,robId,cant)
+      sino
+        si robId = 2
+          RecibirMensaje(cant,Corredor2)
+          maximo(max_papeles,corredor_max,robId,cant)
+        sino
+          si robId = 3
+            RecibirMensaje(cant,Corredor3)
+            maximo(max_papeles,corredor_max,robId,cant)
+          sino
+            si robId = 4
+              RecibirMensaje(cant,Corredor4)
+              maximo(max_papeles,corredor_max,robId,cant)
+            sino
+              si robId = 5
+                RecibirMensaje(cant,Escalador1)
+                maximo(max_flores,escalador_max,robId,cant)
+              sino
+                si robId = 6
+                  RecibirMensaje(cant,Escalador2)
+                  maximo(max_flores,escalador_max,robId,cant)
+                sino
+                  si robId = 7
+                    RecibirMensaje(cant,Escalador3)
+                    maximo(max_flores,escalador_max,robId,cant)
+                  sino
+                    RecibirMensaje(cant,Escalador4)
+                    maximo(max_flores,escalador_max,robId,cant)
+    
+    EnviarMensaje(corredor_max,Corredor1)
+    EnviarMensaje(corredor_max,Corredor2)
+    EnviarMensaje(corredor_max,Corredor3)
+    EnviarMensaje(corredor_max,Corredor4)
+    
+    EnviarMensaje(escalador_max,Escalador1)
+    EnviarMensaje(escalador_max,Escalador2)
+    EnviarMensaje(escalador_max,Escalador3)
+    EnviarMensaje(escalador_max,Escalador4)
+  fin
+variables
+  Corredor1:corredor
+  Corredor2:corredor
+  Corredor3:corredor
+  Corredor4:corredor
+
+  Escalador1:escalador
+  Escalador2:escalador
+  Escalador3:escalador
+  Escalador4:escalador
+
+  Juez:juez
+comenzar
+  AsignarArea(Corredor1,AreaCorredor1)
+  AsignarArea(Corredor2,AreaCorredor2)
+  AsignarArea(Corredor3,AreaCorredor3)
+  AsignarArea(Corredor4,AreaCorredor4)
+
+  AsignarArea(Corredor1,AreaCalle50)
+  AsignarArea(Corredor2,AreaCalle50)
+  AsignarArea(Corredor3,AreaCalle50)
+  AsignarArea(Corredor4,AreaCalle50)
+
+  AsignarArea(Corredor1,EsquinaGanador)
+  AsignarArea(Corredor2,EsquinaGanador)
+  AsignarArea(Corredor3,EsquinaGanador)
+  AsignarArea(Corredor4,EsquinaGanador)
+  
+  AsignarArea(Escalador1,AreaEscaladores)
+  AsignarArea(Escalador2,AreaEscaladores)
+  AsignarArea(Escalador3,AreaEscaladores)
+  AsignarArea(Escalador4,AreaEscaladores)
+  
+  AsignarArea(Escalador1,AreaCalle50)
+  AsignarArea(Escalador2,AreaCalle50)
+  AsignarArea(Escalador3,AreaCalle50)
+  AsignarArea(Escalador4,AreaCalle50)
+
+  AsignarArea(Escalador1,EsquinaGanador)
+  AsignarArea(Escalador2,EsquinaGanador)
+  AsignarArea(Escalador3,EsquinaGanador)
+  AsignarArea(Escalador4,EsquinaGanador)
+
+  AsignarArea(Juez,EsquinaJuez)
+
+  Iniciar(Corredor1,5,1)
+  Iniciar(Corredor2,10,1)
+  Iniciar(Corredor3,15,1)
+  Iniciar(Corredor4,20,1)
+  
+  Iniciar(Escalador1,5,51)
+  Iniciar(Escalador2,10,51)
+  Iniciar(Escalador3,15,51)
+  Iniciar(Escalador4,20,51)
+
+  Iniciar(Juez,1,1)
+fin
