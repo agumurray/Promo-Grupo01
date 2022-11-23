@@ -1,4 +1,5 @@
 programa grupo01
+{Agregado por Agustín Murray (16/11/22)}
 procesos
   proceso juntarPapeles(ES cantPapeles:numero)
   comenzar
@@ -6,7 +7,6 @@ procesos
       cantPapeles:=cantPapeles+1
       tomarPapel
   fin
-
   proceso juntarFlores(ES cantFlores:numero)
   comenzar
     mientras HayFlorEnLaEsquina
@@ -15,8 +15,7 @@ procesos
   fin
   proceso hacerEscalon(E ancho:numero; ES cantFlores:numero; E avInicial:numero)
   variables
-    av:numero
-    ca:numero
+    av, ca:numero
   comenzar
     repetir 3
       av:=PosAv
@@ -37,6 +36,7 @@ procesos
       derecha
 
   fin
+  {Agregado por Iván Polanis (18/11/22)}
   proceso maximo(ES max:numero; ES robMax: numero; E id:numero; E cant:numero)
   comenzar
     si cant > max
@@ -46,8 +46,7 @@ procesos
 
   proceso recorrerCalleEscaladores
   variables
-    av:numero
-    ca:numero
+    av, ca:numero
   comenzar
     si HayFlorEnLaBolsa
       depositarFlor
@@ -63,8 +62,7 @@ procesos
   fin
   proceso recorrerCalleCorredores
   variables
-    av:numero
-    ca:numero
+    av, ca:numero
   comenzar
     si HayPapelEnLaBolsa
       depositarPapel
@@ -78,6 +76,7 @@ procesos
       LiberarEsquina(av - 1,ca)
       depositarPapel
   fin
+{Agregado por Agustín Murray (17/11/22)}
 areas
   AreaCorredor1:AreaP(5,1,5,50)
   AreaCorredor2:AreaP(10,1,10,50)
@@ -90,13 +89,7 @@ areas
 robots
   robot corredor
   variables
-    cantPasos:numero
-    quienSoy:numero
-    cantPapeles:numero
-    av:numero
-    ca:numero
-    ganador:numero
-    avLlegada:numero
+    cantPasos, quienSoy, cantPapeles, av, ca, ganador, avLlegada:numero
   comenzar
     av:=PosAv   
     ca:=PosCa
@@ -145,23 +138,18 @@ robots
       LiberarEsquina(avLlegada,50)
   fin
 
+  {Agregado por Iván Polanis (17/11/22)}
   robot escalador
   variables
-    quienSoy:numero
-    cantFlores:numero
-    av:numero
-    ca:numero
-    bool: boolean
-    ancho:numero
-    ganador:numero
-    avLlegada:numero
+    quienSoy, cantFlores, av, ca, ancho, ganador, avLlegada:numero
+    empezar:boolean
   comenzar
     av:=PosAv
     ca:=PosCa
 
     cantFlores:=0
     RecibirMensaje(quienSoy,Juez)
-    RecibirMensaje(bool,*)
+    RecibirMensaje(empezar,*)
     
     repetir 5
       Random(ancho,3,5)
@@ -190,14 +178,10 @@ robots
       LiberarEsquina(avLlegada,50)
   fin
 
+  {Agregado por Agustín Murray e Iván Polanis (18/11/22)}
   robot juez
   variables
-    robId:numero
-    max_papeles:numero
-    max_flores:numero
-    corredor_max:numero
-    escalador_max:numero
-    cant:numero
+    robId, max_papeles, max_flores, corredor_max, escalador_max, cant:numero
   comenzar
     max_papeles:=0
     max_flores:=0
@@ -266,6 +250,7 @@ variables
   Escalador4:escalador
 
   Juez:juez
+  {Agregado por Iván Polanis (18/11/22)}
 comenzar
   AsignarArea(Corredor1,AreaCorredor1)
   AsignarArea(Corredor2,AreaCorredor2)
